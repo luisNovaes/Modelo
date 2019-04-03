@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import com.magno.modelo.domain.Categoria;
+import com.magno.modelo.dto.CategoriaDTO;
 import com.magno.modelo.repositories.CategoriaRepository;
 import com.magno.modelo.services.exceptions.DataIntegrityException;
 import com.magno.modelo.services.exceptions.ObjectNotFoundException;
@@ -54,5 +55,14 @@ return obj.orElseThrow(() -> new ObjectNotFoundException(
 		PageRequest pageRequest = PageRequest.of(page, linesPerPage, Direction.valueOf(direction), orderBy);
 		return repo.findAll(pageRequest);	
 	}	
+	
+	public Categoria fromDTO(CategoriaDTO objDto) {
+		return new Categoria(objDto.getId(), objDto.getNome());
+		
+	}
+	
+	
+	
+	
 
 }
