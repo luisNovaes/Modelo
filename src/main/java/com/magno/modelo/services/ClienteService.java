@@ -57,7 +57,7 @@ return obj.orElseThrow(() -> new ObjectNotFoundException(
 		try {
 		repo.deleteById(id);
 		}catch(DataIntegrityViolationException e) {
-			throw new DataIntegrityException("Não é possível escluir porque há entidades relacionadas");
+			throw new DataIntegrityException("Não é possível escluir porque há pedidos relacionadas");
 		}
 	}
 	
