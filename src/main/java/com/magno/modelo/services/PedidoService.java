@@ -1,24 +1,69 @@
 package com.magno.modelo.services;
 
+import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.magno.modelo.domain.ItemPedido;
+import com.magno.modelo.domain.PagamentoComBoleto;
 import com.magno.modelo.domain.Pedido;
+import com.magno.modelo.domain.enums.EstadoPagamento;
+import com.magno.modelo.repositories.ItemPedidoRepository;
+import com.magno.modelo.repositories.PagamentoRepository;
 import com.magno.modelo.repositories.PedidoRepository;
 import com.magno.modelo.services.exceptions.ObjectNotFoundException;
 
-@Service	
+@Service
 public class PedidoService {
-	//injeção de dependência ou inversão de controle
+
+	// injeção de dependência ou inversão de controle
 	@Autowired
 	private PedidoRepository repo;
-	
-	public Pedido find(Integer id) {  
-		Optional<Pedido> obj = repo.findById(id); 
-return obj.orElseThrow(() -> new ObjectNotFoundException(    
-				"Objeto não encontrado! Id: " + id + ", Tipo: " + Pedido.class.getName()));  
+
+	@Autowired
+	private BoletoService boletoService;
+
+	@Autowired
+	private PagamentoRepository pagamentoRepository;
+
+	@Autowired
+
+	private ItemPedidoRepository itemPedidoRepository;
+
+	@Autowired
+
+	private ProdutoService produtoService;
+
+	public Pedido find(Integer id) {
+		Optional<Pedido> obj = repo.findById(id);
+		return obj.orElseThrow(() -> new ObjectNotFoundException(
+				"Objeto não encontrado! Id: " + id + ", Tipo: " + Pedido.class.getName()));
+	}
+
+	@Transactional 
+	public Pedido insert(Pedido obj) {
+		obj.setId(null);
+		obj.setInstante(new Date());
+		obj.getPagamento().setEstado(EstadoPagamento.PENDENTE);
+		obj.getPagamento().setPedido(obj);
+		if (obj.getPagamento() instanceof PagamentoComBoleto) {
+			PagamentoComBoleto pagto = (PagamentoComBoleto) obj.getPagamento();
+			boletoService.preencherPagamentoComBoleto(pagto, obj.getInstante());
+		}
+		obj = repo.save(obj);
+		pagamentoRepository.save(obj.getPagamento());
+		for (ItemPedido ip : obj.getItens()) {
+			ip.setDesconto(0.0);
+			ip.setPreco(produtoService.find(ip.getProduto().getId()).getPreco());
+			ip.setPedido(obj);
+		}
+
+		itemPedidoRepository.saveAll(obj.getItens());
+
+		return obj;
 	}
 
 }
