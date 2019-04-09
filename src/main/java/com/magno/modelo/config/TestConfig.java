@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import com.magno.modelo.services.DBService;
+import com.magno.modelo.services.EmailService;
+import com.magno.modelo.services.MockEmailService;
 
 @Configuration
 @Profile("test")
@@ -19,8 +21,11 @@ public class TestConfig {
 	@Bean
 	public boolean instantiateDatabase() throws ParseException {
 		dbService.instantiateTestDatabase();
-		return true;
-		
+		return true;		
 	}
-
+	
+	@Bean
+	public EmailService emalService() {
+		return new MockEmailService();		
+	}
 }
